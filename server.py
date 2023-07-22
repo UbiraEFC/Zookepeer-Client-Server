@@ -36,7 +36,7 @@ class Server:
     # Método para executar o servidor
     def run(self):
         while True:
-        # O método run é executado em um loop infinito
+            # O método run é executado em um loop infinito
 
             # Aguarda e aceita uma conexão de cliente usando o socket
             c, addr = self.s.accept()
@@ -44,7 +44,6 @@ class Server:
             # Cria uma nova thread para manipular a conexão com o cliente ou outro servidor
             t = Thread(target=self.server_listen, args=(c, addr))
             t.start()
-
 
     # Método para escutar requisições de clientes
     def server_listen(self, c, addr):
@@ -220,7 +219,7 @@ class Server:
                         c.sendall(codify_message(response))
 
                     # Caso o timestamp do item seja igual ao timestamp da requisição
-                    elif item["timestamp"] == request.timestamp:
+                    elif item["timestamp"] <= request.timestamp:
                         # Atualiza o item no dicionário de arquivos com o valor e timestamp especificados
                         self.files[request.key] = {
                             "value": request.value,
@@ -279,9 +278,18 @@ class Server:
 
                     # Caso o timestamp do item seja maior que o timestamp da requisição
                     elif item["timestamp"] > request.timestamp:
+                        # Imprime informações sobre a requisição PUT
+                        print(
+                            self.PUT_SERVER_MASTER_ERROR_PRINT(
+                                request.c_IP,
+                                request.c_port,
+                                request.key,
+                            )
+                        )
+
                         # Cria uma mensagem de resposta do tipo PUT_OK com os dados do item existente
                         response = Message(
-                            "PUT_OK",
+                            "PUT_ERROR",
                             request.key,
                             item["value"],
                             item["timestamp"],
@@ -416,7 +424,6 @@ class Server:
             c.close()
             sys.exit()
 
-
     # Método para imprimir informações de replicação de um servidor escravo
     def REPLICATION_SERVER_SLAVE_PRINT(self, key, value, timestamp):
         return "REPLICATION key:{} value:{} timestamp:{}.".format(key, value, timestamp)
@@ -435,6 +442,12 @@ class Server:
     def PUT_SERVER_MASTER_PRINT(self, c_IP, c_port, key, value):
         return "Cliente {}:{} PUT key:{} value:{}.".format(c_IP, c_port, key, value)
 
+    # Método para imprimir informações de um PUT em um servidor líder (master) com erro
+    def PUT_SERVER_MASTER_ERROR_PRINT(self, c_IP, c_port, key):
+        return "Cliente {}:{} tentou inserir um valor desatualizado na key:{}".format(
+            c_IP, c_port, key
+        )
+
     # Método para imprimir informações de um GET em um servidor
     def GET_SERVER_PRINT(self, c_IP, c_port, key, value, c_timestamp, s_timestamp):
         return "Cliente {}:{} GET key:{} ts:{}. Meu ts é {}, portanto devolvendo {}.".format(
@@ -444,7 +457,6 @@ class Server:
     # Método para retornar uma mensagem de erro
     def ERROR(self):
         return "TRY_OTHER_SERVER_OR_LATER"
-
 
 
 # Solicita ao usuário para iniciar um servidor

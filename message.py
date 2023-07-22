@@ -1,5 +1,6 @@
 import pickle
 
+
 class Message:
     # Lista de tipos de mensagens permitidos
     ALLOWED_TYPES = [
@@ -8,6 +9,7 @@ class Message:
         "GET_NULL",
         "PUT",
         "PUT_OK",
+        "PUT_ERROR",
         "REPLICATION",
         "REPLICATION_OK",
         "ERROR",
@@ -36,20 +38,22 @@ class Message:
             )
         return type
 
+
 # Função para codificar uma mensagem em bytes para ser enviada através de um socket
 def codify_message(message):
     # Serializa a mensagem usando o módulo pickle
     serialized_message = pickle.dumps(message)
     # Obtém o tamanho da mensagem serializada em bytes e converte para um inteiro de 4 bytes em ordem big-endian
-    message_length = len(serialized_message).to_bytes(4, byteorder='big')
+    message_length = len(serialized_message).to_bytes(4, byteorder="big")
     # Retorna a concatenação do tamanho da mensagem e da mensagem serializada
     return message_length + serialized_message
+
 
 # Função para decodificar uma mensagem recebida em bytes através de um socket
 def decodify_message(message):
     # Obtém o tamanho da mensagem a partir dos primeiros 4 bytes e converte para um inteiro
-    message_length = int.from_bytes(message[:4], byteorder='big')
+    message_length = int.from_bytes(message[:4], byteorder="big")
     # Obtém a mensagem serializada a partir dos próximos bytes até o tamanho da mensagem
-    serialized_message = message[4:4+message_length]
+    serialized_message = message[4 : 4 + message_length]
     # Desserializa a mensagem usando o módulo pickle e retorna o objeto Message resultante
-    return pickle.loads(serialized_message) 
+    return pickle.loads(serialized_message)

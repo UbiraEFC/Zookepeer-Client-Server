@@ -121,6 +121,13 @@ class Client:
             # Define o timestamp como 0
             ts = 0
 
+            # Obtém o item com a chave especificada
+            item = self.files.get(key)
+
+            # Caso o item exista, atualiza o valor do timestamp
+            if item is not None:
+                ts = item["timestamp"]
+
             # Cria uma mensagem do tipo PUT com a chave e o valor fornecidos
             message = Message(
                 "PUT", key, value, ts, self.IP, self.port, server[0], server[1]
@@ -146,9 +153,18 @@ class Client:
                 )
 
             # Verifica se a resposta é do tipo ERROR
-            elif response.type == "ERROR":
-                # Imprime a mensagem de erro recebida na resposta
-                print(response.value)
+            elif response.type == "PUT_ERROR":
+                # Imprime informações sobre uma requisição PUT que não foi realizada com sucesso
+                print(
+                    self.PUT_CLIENT_PRINT_ERROR(
+                        response.key,
+                        response.value,
+                        ts,
+                        response.s_IP,
+                        response.s_port,
+                        response.timestamp,
+                    )
+                )
 
             else:
                 # Caso contrário, informa que houve um erro de comunicação com o servidor
@@ -206,9 +222,17 @@ class Client:
             )
         )
 
+    # Método para imprimir informações sobre uma requisição PUT que não foi realizada
+    def PUT_CLIENT_PRINT_ERROR(
+        self, key, value, c_timestamp, s_IP, s_port, s_timestamp
+    ):
+        return "PUT_ERROR key:{} value:{} timestamp:{} realizada no servidor {}:{} com timestamp: {}.".format(
+            key, value, c_timestamp, s_IP, s_port, s_timestamp
+        )
+
     # Método para imprimir informações sobre uma requisição GET que não encontrou o item especificado
     def GET_NULL_CLIENT_PRINT(self, key):
-        return ("GET key:{} não encontrado.".format(key))
+        return "GET key:{} não encontrado.".format(key)
 
 
 # Solicita ao usuário para iniciar um cliente
@@ -309,4 +333,3 @@ else:
     # Caso a escolha do usuário não seja para iniciar um cliente, encerra o processo.
     print("Ending proccess")
     sys.exit()
-    
